@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* [x-cloak] {
+    display: none;
+} */
+@layer base {
+    input {
+        outline: none !important;
+        border: none !important;
+    }
+    body {
+        @apply font-montserrat; /* Applies the default sans-serif font to the body */
+    }
+}
+@layer utilities {
+    .active {
+        @apply bg-gray-200 rounded-md text-rose-600;
+    }
+}
