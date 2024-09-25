@@ -8,6 +8,7 @@ use App\Http\Requests\ProductRequest\StoreProductRequest;
 use App\Http\Requests\ProductRequest\UpdateProductRequest;
 use App\Models\Team;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ProductController extends Controller
 {
@@ -67,7 +68,12 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+
+        // Gate::define('edit-product', function (User $user, Product $product) {
+        //     return $product->team->owner->is($user);
+        // });
+        // Gate::authorize('edit-product', $product);
+        return view('products.edit');
     }
 
     /**

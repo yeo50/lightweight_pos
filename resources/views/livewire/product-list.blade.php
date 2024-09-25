@@ -6,7 +6,8 @@ use App\Models\Team;
 new class extends Component {
     public $user_id;
     public $team;
-
+    public $search_value;
+    public $filter;
     public $products;
     public $ids = [];
     public $checked;
@@ -20,19 +21,42 @@ new class extends Component {
         $this->products = Product::where('team_id', $this->team->id)->get();
         $this->checked = false;
         $this->selected = false;
+        $this->filter = false;
     }
+    public function search()
+    {
+        $this->products = Product::where('team_id', $this->team->id)
+            ->where('name', 'LIKE', '%' . $this->search_value . '%')
+            ->get();
+        $this->filter = true;
 
+        return $this;
+    }
+    public function searchCancel()
+    {
+        $this->products = Product::where('team_id', $this->team->id)->get();
+        $this->filter = false;
+        $this->search_value = '';
+        return $this;
+    }
     public function selectedItem()
     {
-        $this->selected = true;
+        if (!empty($this->ids)) {
+            $this->selected = true;
+        } else {
+            $this->selected = false;
+            $this->checked = false;
+        }
     }
     public function bulkActionChecked()
     {
         if (!$this->checked) {
             $this->checked = true;
             $this->ids = $this->products->pluck('id');
+            $this->selected = true;
         } else {
             $this->checked = false;
+            $this->selected = false;
             $this->ids = [];
         }
     }
@@ -56,13 +80,16 @@ new class extends Component {
         <div class="flex justify-end py-4 pe-4">
             <div class="flex justify-between items-center space-x-3">
                 <div class="  items-center w-fit rounded-2xl relative ">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-6 inline-block text-gray-500 translate-x-10 ">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
+                    <form wire:submit="search">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="h-6 inline-block text-gray-500 translate-x-10 ">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
 
-                    <input type="text" placeholder="Search" class="ps-10 inline-block bg-gray-100 h-8 rounded-xl  ">
+                        <input type="text" placeholder="Search" wire:model="search_value"
+                            class="ps-10 inline-block bg-gray-100 h-8 rounded-xl  ">
+                    </form>
                 </div>
                 <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">
@@ -72,6 +99,19 @@ new class extends Component {
                 </div>
             </div>
         </div>
+        @if ($filter)
+            <div class="flex justify-between px-4">
+                <div class="py-2 px-3 border-t">
+                    Active Filter: <span class="font-semibold">{{ $search_value }}</span>
+                </div>
+                <div>
+                    <button wire:click="searchCancel"> <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg></button>
+                </div>
+            </div>
+        @endif
         @if ($checked || $selected)
             <div class="flex justify-between py-4 px-4 border-t ">
                 <div>{{ count($ids) }} selected</div>
@@ -106,6 +146,8 @@ new class extends Component {
                         <td class=" text-start px-3 py-2">{{ $item->name }}</td>
                         <td class=" text-start px-3 py-2">{{ $item->price }}</td>
                         <td class=" text-start px-3 py-2">{{ $item->quantity }}</td>
+                        <td><a href="{{ route('products.edit', $item->id) }}"
+                                class="font-semibold text-violet-600">Edit</a></td>
                     </tr>
                 @endforeach
 

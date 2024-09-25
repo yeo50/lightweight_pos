@@ -44,4 +44,8 @@ class Team extends JetstreamTeam
             'personal_team' => 'boolean',
         ];
     }
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

@@ -14,4 +14,12 @@ class Product extends Model
         'quantity',
         'price',
     ];
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+    public function owner()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

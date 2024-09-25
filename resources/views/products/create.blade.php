@@ -30,8 +30,10 @@
                         <input type="number" name="price" id="price" class="rounded-xl bg-gray-200">
                     </div>
                 </div>
-                <div class="mt-4">
-                    <x-button>Add </x-button>
+                <div class="mt-4 space-x-3">
+                    <x-button class="hover:ring focus:ring active:ring">Add </x-button> <a
+                        href="{{ route('products.index') }}"><x-button type="button"
+                            class="border border-gray-500 hover:ring focus:ring active:ring  bg-transparent text-black hover:bg-transparent hover:border-black focus:bg-transparent active:bg-transparent">Cancel</x-button></a>
                 </div>
             </form>
         </div>
