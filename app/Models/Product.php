@@ -18,8 +18,4 @@ class Product extends Model
     {
         return $this->belongsTo(Team::class);
     }
-    public function owner()
-    {
-        return $this->belongsTo(User::class);
-    }
 }

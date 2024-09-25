@@ -31,12 +31,12 @@ class ProductController extends Controller
     {
         $user = Auth::user();
         $team = $user->currentTeam;
-        $ownsTeam = $user->id == $team->user_id;
+        // $ownsTeam = $user->id == $team->user_id;
+        if (Gate::denies('create-product', $team)) {
+            abort(403);
+        };
 
-        if ($ownsTeam) {
-            return view('products.create', ['team' => $team]);
-        }
-        return abort(404);
+        return view('products.create', ['team' => $team]);
     }
 
     /**
@@ -44,15 +44,21 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
+        $new = $request->all();
         $user = Auth::user();
         $team = $user->currentTeam;
-        $ownsTeam = $user->id == $team->user_id;
-        $new = $request->all();
-        if ($ownsTeam) {
-            Product::create($new);
-            return redirect()->route('products.index')->with('message', 'new product added successfully');
-        }
-        return redirect()->route('products.index')->with('err-message', 'you need permission to add');
+        Gate::authorize('create-product', $team);
+
+
+        Product::create($new);
+        return redirect()->route('products.index')->with('message', 'new product added successfully');
+        // $ownsTeam = $user->id == $team->user_id;
+
+        // if ($ownsTeam) {
+        //     Product::create($new);
+        //     return redirect()->route('products.index')->with('message', 'new product added successfully');
+        // }
+        // return redirect()->route('products.index')->with('err-message', 'you need permission to add');
     }
 
     /**
@@ -69,11 +75,8 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
 
-        // Gate::define('edit-product', function (User $user, Product $product) {
-        //     return $product->team->owner->is($user);
-        // });
-        // Gate::authorize('edit-product', $product);
-        return view('products.edit');
+        Gate::authorize('edit-product', $product);
+        return view('products.edit', ['product' => $product]);
     }
 
     /**
@@ -81,7 +84,11 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        //
+        Gate::authorize('edit-product', $product);
+
+        $new = $request->all();
+        $product->update($new);
+        return redirect()->route('products.index');
     }
 
     /**

@@ -10,9 +10,11 @@
             <h1 class="text-2xl font-bold mt-4">Products in {{ $team->name }}
 
             </h1>
+            @can('create-product', $team)
+                <x-anchor-button href="{{ route('products.create') }}">
+                    Add Product</x-anchor-button>
+            @endcan
 
-            <x-anchor-button href="{{ route('products.create') }}">
-                Add Product</x-anchor-button>
         </div>
         <livewire:product-list />
     </div>
