@@ -12,29 +12,44 @@
                 <div>
                     <input type="hidden" name="team_id" value="{{ $team->id }}">
                 </div>
-                <div class="mt-3">
-                    <label for="name" class="font-semibold ps-1 py-1">Name</label> <br>
-                    <div class="border-2 inline-block rounded-[14px]">
-                        <input type="text" name="name" id="name" class="rounded-xl bg-gray-200">
+                <div class="grid grid-cols-2 gap-4 ">
+                    <div class="mt-3 space-y-2 px-4 py-2 ">
+                        <label for="name" class="font-semibold ps-1 py-1">Name</label> <br>
+                        <div>
+                            <input type="text" name="name" id="name"
+                                class="rounded-xl block w-4/5  bg-gray-200">
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-2 px-4 py-2">
+                        <label for="quantity" class="font-semibold ps-1 py-1">Quantity</label> <br>
+                        <div>
+                            <input type="number" name="quantity" id="quantity"
+                                class="rounded-xl block w-4/5 bg-gray-200">
+                        </div>
+                    </div>
+                    <div class="mt-3  space-y-2 px-4 py-2">
+                        <label for="price" class="font-semibold ps-1 py-1">Price</label> <br>
+                        <div>
+                            <input type="number" name="price" id="price"
+                                class="rounded-xl block w-4/5 bg-gray-200">
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-2 px-4 py-2">
+                        <label for="barcode" class="font-semibold ps-1 py-1">Barcode</label> <br>
+                        <div>
+                            <input type="text" name="barcode" id="barcode"
+                                class="rounded-xl block w-4/5 bg-gray-200">
+                        </div>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <label for="quantity" class="font-semibold ps-1 py-1">Quantity</label> <br>
-                    <div class="border-2 inline-block rounded-[14px]">
-                        <input type="number" name="quantity" id="quantity" class="rounded-xl bg-gray-200">
-                    </div>
+                <div class="mt-4 space-x-3 ps-4">
+                    <x-button class="hover:ring focus:ring active:ring min-w-20 inline-flex justify-center">Add
+                    </x-button> <a href="{{ route('products.index') }}"
+                        class="border px-3 py-[7px]  rounded-md inline-flex items-center justify-center min-w-20 border-gray-500  hover:ring focus:ring active:ring   hover:bg-transparent hover:border-black
+                            focus:bg-transparent active:bg-transparent">
+                        Cancel</a>
                 </div>
-                <div class="mt-3">
-                    <label for="price" class="font-semibold ps-1 py-1">Price</label> <br>
-                    <div class="border-2 inline-block rounded-[14px]">
-                        <input type="number" name="price" id="price" class="rounded-xl bg-gray-200">
-                    </div>
-                </div>
-                <div class="mt-4 space-x-3">
-                    <x-button class="hover:ring focus:ring active:ring">Add </x-button> <a
-                        href="{{ route('products.index') }}"><x-button type="button"
-                            class="border border-gray-500 hover:ring focus:ring active:ring  bg-transparent text-black hover:bg-transparent hover:border-black focus:bg-transparent active:bg-transparent">Cancel</x-button></a>
-                </div>
+
             </form>
         </div>
     </div>

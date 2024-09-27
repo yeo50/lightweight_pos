@@ -2,6 +2,6 @@
     <x-slot:label>
         dashboard
     </x-slot>
-    dashboard
 
+    <livewire:scan-barcode></livewire:scan-barcode>
 </x-app-layout>

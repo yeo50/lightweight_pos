@@ -115,7 +115,7 @@ new class extends Component {
         @if ($checked || $selected)
             <div class="flex justify-between py-4 px-4 border-t ">
                 <div>{{ count($ids) }} selected</div>
-                
+
                 <x-button class="bg-red-500 hover:bg-red-400 focus:bg-red-400 active:bg-red-600"
                     wire:confirm.prompt="Are you sure?\n\nType DELETE to confirm|DELETE"
                     wire:click="bulkDeleteAll">Delete
@@ -135,6 +135,7 @@ new class extends Component {
                     <th class="text-start py-2 px-3">Name</th>
                     <th class="text-start py-2 px-3">Price</th>
                     <th class="text-start py-2 px-3">Quantity</th>
+                    <th class="text-start py-2 px-3">Barcode</th>
                 </thead>
                 @foreach ($products as $key => $item)
                     <tr :key={{ $key }}>
@@ -145,8 +146,9 @@ new class extends Component {
 
                         <td class=" text-start px-3 py-2 ">{{ $key + 1 }}</td>
                         <td class=" text-start px-3 py-2">{{ $item->name }}</td>
-                        <td class=" text-start px-3 py-2">{{ $item->price }}</td>
+                        <td class=" text-start px-3 py-2">{{ $item->price }} $</td>
                         <td class=" text-start px-3 py-2">{{ $item->quantity }}</td>
+                        <td class=" text-start px-3 py-2">{{ $item->barcode }}</td>
                         @can('edit-product', $item)
                             <td><a href="{{ route('products.edit', $item->id) }}"
                                     class="font-semibold text-violet-600">Edit</a></td>

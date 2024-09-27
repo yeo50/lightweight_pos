@@ -27,7 +27,11 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    Route::resource('products', ProductController::class);
+    Route::resource('products', ProductController::class)->except(['destroy']);
+    //one way
+    // Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('can:edit-product,product');
+    //another way
+    Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->can('edit-product', 'product');
     Route::get('/instocks', function () {
         return view('instocks');
     })->name('instocks');
