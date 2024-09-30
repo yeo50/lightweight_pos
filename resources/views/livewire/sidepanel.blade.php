@@ -12,6 +12,10 @@ new class extends Component {
             <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'dashboard' ? 'active' : '' }}">Dashboard
             </li>
         </a>
+        <a wire:navigate href="/sales">
+            <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'sales' ? 'active' : '' }}">Sales Screen
+            </li>
+        </a>
         <a wire:navigate href="/products">
             <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'products' ? 'active' : '' }}"> Products
             </li>

@@ -3,5 +3,4 @@
         dashboard
     </x-slot>
 
-    <livewire:scan-barcode></livewire:scan-barcode>
 </x-app-layout>

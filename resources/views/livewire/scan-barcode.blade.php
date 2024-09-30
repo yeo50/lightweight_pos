@@ -5,11 +5,14 @@ use App\Models\Product;
 
 new class extends Component {
     public $barcode;
-    public $count;
-    public $products;
+
+    public $counts = [];
+    public $total;
+
+    public $products = [];
     public function mount()
     {
-        $this->count = 0;
+        $this->total = 0;
     }
     public function barcodeSearch()
     {
@@ -17,14 +20,70 @@ new class extends Component {
     }
     public function barcodeDetected()
     {
-        $this->products = Product::where('barcode', $this->barcode)->get();
-        $this->count++;
-        $this->barcode = '';
+        $user = Auth::user();
+        $currentTeamId = $user->currentTeam->id;
+
+        $teamIds = [];
+        $teams = $user->allTeams();
+
+        foreach ($teams as $key => $value) {
+            $teamIds[] = $value->id;
+        }
+        $keyId = array_search($currentTeamId, $teamIds);
+
+        if ($keyId !== false) {
+            $teamId = $teamIds[$keyId];
+
+            $product = Product::where('team_id', $teamId)
+                ->where('barcode', $this->barcode)
+                ->first();
+
+            if ($product) {
+                $existingProductKey = collect($this->products)->search(function ($item) use ($product) {
+                    return $item['barcode'] == $product->barcode;
+                });
+                if ($existingProductKey !== false) {
+                    $existingProduct = $this->products[$existingProductKey];
+                    $oldTotal = $existingProduct['price'] * $existingProduct['count'];
+                    $this->total -= $oldTotal;
+
+                    $this->products[$existingProductKey]['count']++;
+                    $count = $this->products[$existingProductKey]['count'];
+                    $total = $existingProduct['price'] * $count;
+                    $this->total += $total;
+                } else {
+                    $this->products[] = [
+                        'name' => $product->name,
+                        'price' => $product->price,
+                        'barcode' => $product->barcode,
+                        'count' => 1,
+                    ];
+                    $this->counts[] = 1;
+                    // dd($this->counts);
+
+                    $total = $product->price * 1;
+                    $this->total += $total;
+                }
+            }
+            $this->barcode = '';
+        }
+    }
+
+    public function reCount($key)
+    {
+        $prevTotal = $this->products[$key]['price'] * $this->products[$key]['count'];
+        $this->total -= $prevTotal;
+        $this->products[$key]['count'] = $this->counts[$key];
+        $total = $this->products[$key]['price'] * $this->products[$key]['count'];
+        $this->total += $total;
     }
 }; ?>
 
 <div>
 
+    <h1> 8836000165850</h1>
+    <h1>8836000189078</h1>
+    <h1> 8836000192443</h1>
 
     <div class=" px-4">
         <div x-data="{ scan: true, manual: false }">
@@ -37,7 +96,7 @@ new class extends Component {
                     Enter Manually
                 </div>
             </div>
-            <form x-show="scan">
+            <form x-show="scan" wire:submit="barcodeDetected">
                 <div class="mt-3 space-x-2 flex px-4 py-2">
                     <div>
                         <input type="text" autofocus wire:input.debounce.500ms="barcodeDetected"
@@ -52,17 +111,17 @@ new class extends Component {
                 </div>
 
             </form>
-            <form x-show="manual" class="mt-3 px-4 py-2">
-                <input type="text" class="rounded-xl min-w-40  inline-block bg-gray-200">
+            <form x-show="manual" wire:submit="barcodeDetected" class="mt-3 px-4 py-2">
+                <input type="text" wire:model="barcode" class="rounded-xl min-w-40  inline-block bg-gray-200">
                 <button type="submit"
-                    class="ms-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-400">Submit</button>
+                    class="ms-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 active:bg-indigo-600 ">Submit</button>
             </form>
         </div>
 
     </div>
     <table class="w-[90%] border px-4 py-6 me-auto ms-4 mt-8 ">
-        <thead>
-            <th class="px-3 py-2 text-start class="px-3 py-2 text-start"">No.</th>
+        <thead class="border-b bg-gray-200">
+            <th class="px-3 py-2 text-start">No.</th>
             <th class="px-3 py-2 text-start">Name</th>
             <th class="px-3 py-2 text-start">Price</th>
             <th class="px-3 py-2 text-start">Quantity</th>
@@ -71,13 +130,26 @@ new class extends Component {
         </thead>
         @if ($products)
             @foreach ($products as $key => $item)
+                <tr :key={{ $key }} x-data="{ changeCount: false }">
+                    <td class="px-3 py-2 text-start">{{ $key + 1 }}</td>
+                    <td class="px-3 py-2 text-start">{{ $item['name'] }}</td>
+                    <td class="px-3 py-2 text-start">{{ $item['price'] }}</td>
+                    <td @click="changeCount = true ; " class="px-3 py-2 text-start cursor-pointer"
+                        :class="changeCount ? 'hidden' : ''">
+                        {{ $item['count'] }} </td>
+                    <td x-show="changeCount">
+
+                        <input type="number" wire:model.defer="counts.{{ $key }}"
+                            x-on:keydown.enter="changeCount = false; $wire.reCount({{ $key }})"
+                            class="inline-block min-w-10 w-20 bg-gray-200">
+
+                    </td>
+                    <td class="px-3 py-2 text-start">{{ $item['price'] * $item['count'] }} $</td>
+                </tr>
             @endforeach
-            <tr>
-                <td class="px-3 py-2 text-start">{{ $key + 1 }}</td>
-                <td class="px-3 py-2 text-start">{{ $item->name }}</td>
-                <td class="px-3 py-2 text-start">{{ $item->price }}</td>
-                <td class="px-3 py-2 text-start">{{ $count }}</td>
-                <td class="px-3 py-2 text-start">{{ $item->price * $count }}</td>
+            <tr class="border-t">
+                <td colspan ="4" class="px-3 py-2 text-start text-lg font-semibold">Total</td>
+                <td class="px-3 py-2 text-start border-s text-lg font-semibold">{{ $total }} $</td>
             </tr>
         @endif
     </table>

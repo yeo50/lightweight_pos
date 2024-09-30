@@ -13,7 +13,8 @@ class Product extends Model
         'name',
         'quantity',
         'price',
-        'barcode'
+        'barcode',
+        'count'
     ];
     public function team()
     {
