@@ -2,22 +2,32 @@
 
 use Livewire\Volt\Component;
 use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\Sale;
 
 new class extends Component {
     public $barcode;
 
     public $counts = [];
     public $total;
-
+    public $team_id;
     public $products = [];
     public function mount()
     {
         $this->total = 0;
+        $user = Auth::user();
+        $currentTeamId = $user->currentTeam->id;
+
+        $teamIds = [];
+        $teams = $user->allTeams();
+
+        foreach ($teams as $key => $value) {
+            $teamIds[] = $value->id;
+        }
+        $keyId = array_search($currentTeamId, $teamIds);
+        $this->team_id = $teamIds[$keyId];
     }
-    public function barcodeSearch()
-    {
-        dd($this->barcode);
-    }
+
     public function barcodeDetected()
     {
         $user = Auth::user();
@@ -59,7 +69,6 @@ new class extends Component {
                         'count' => 1,
                     ];
                     $this->counts[] = 1;
-                    // dd($this->counts);
 
                     $total = $product->price * 1;
                     $this->total += $total;
@@ -76,6 +85,42 @@ new class extends Component {
         $this->products[$key]['count'] = $this->counts[$key];
         $total = $this->products[$key]['price'] * $this->products[$key]['count'];
         $this->total += $total;
+    }
+    public function cancel($key)
+    {
+        $product = $this->products[$key];
+        $prevTotal = $product['price'] * $product['count'];
+
+        unset($this->products[$key]);
+        $this->total -= $prevTotal;
+        $this->products = array_values($this->products);
+    }
+    public function completePayment()
+    {
+        $newTransaction['team_id'] = $this->team_id;
+        $newTransaction['transaction_no'] = 'TRX-' . fake()->creditCardNumber();
+        $newTransaction['amount'] = $this->total;
+        $transaction = Transaction::create($newTransaction);
+        foreach ($this->products as $key => $value) {
+            $product = Product::where('team_id', $this->team_id)
+                ->where('barcode', $value['barcode'])
+                ->first();
+
+            $newQuantity = $product->quantity - $value['count'];
+            $product->quantity = $newQuantity;
+
+            DB::transaction(function () use ($product, $transaction, $value) {
+                $newSale['team_id'] = $this->team_id;
+                $newSale['transaction_id'] = $transaction->id;
+                $newSale['name'] = $product->name;
+                $newSale['count'] = $value['count'];
+                $newSale['price'] = $product->price;
+                $newSale['total'] = $product->price * $value['count'];
+                $sale = Sale::create($newSale);
+                $product->update();
+            });
+        }
+        $this->products = [];
     }
 }; ?>
 
@@ -126,6 +171,7 @@ new class extends Component {
             <th class="px-3 py-2 text-start">Price</th>
             <th class="px-3 py-2 text-start">Quantity</th>
             <th class="px-3 py-2 text-start">Costs</th>
+            <th></th>
 
         </thead>
         @if ($products)
@@ -145,6 +191,12 @@ new class extends Component {
 
                     </td>
                     <td class="px-3 py-2 text-start">{{ $item['price'] * $item['count'] }} $</td>
+                    <td class="cursor-pointer" wire:click="cancel({{ $key }})"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </td>
                 </tr>
             @endforeach
             <tr class="border-t">
@@ -152,7 +204,11 @@ new class extends Component {
                 <td class="px-3 py-2 text-start border-s text-lg font-semibold">{{ $total }} $</td>
             </tr>
         @endif
+
     </table>
+    <div class="flex w-[90%] justify-end px-4 py-6">
+        <x-anchor-button wire:click="completePayment" class="py-3 cursor-pointer">Complete Payment</x-anchor-button>
+    </div>
 
 
 </div>
