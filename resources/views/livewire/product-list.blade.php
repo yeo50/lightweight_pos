@@ -15,6 +15,10 @@ new class extends Component {
     public $refresh;
     public $number;
     public $price_action;
+    public $min;
+    public $max;
+    public $filterPriceRange;
+    public $sortBoo;
     public function mount()
     {
         $this->team = Auth::user()->currentTeam;
@@ -25,6 +29,7 @@ new class extends Component {
         $this->selected = false;
         $this->filter = false;
         $this->price_action = false;
+        $this->filterPriceRange = false;
     }
     public function search()
     {
@@ -103,15 +108,31 @@ new class extends Component {
         }
         return $this->price_action = false;
     }
-    public function mathOperation()
+    public function filterRange()
     {
-        $result = '';
+        $this->products = Product::whereBetween('price', [$this->min, $this->max])->get();
+        $this->filterPriceRange = true;
+        return $this;
+    }
+    public function sortBy($name)
+    {
+        if ($name == 'price') {
+            $this->sortBoo = !$this->sortBoo;
+
+            $sortedProducts = $this->products->sortBy('price');
+            $reversedProducts = $sortedProducts->reverse();
+            $this->products = $this->sortBoo ? $sortedProducts : $reversedProducts;
+        }
+        if ($name == 'number') {
+            $sortedProducts = $this->products->sortBy('id');
+            $this->products = $sortedProducts;
+        }
     }
 }; ?>
 
 <div class="mt-4">
-    <button wire:click="mathOperation" class="bg-violet-600 px-3 py-2 shadow-lg rounded-lg">math operation</button>
-    <div class=" border border-gray-300 rounded-xl">
+
+    <div x-data="{ rangeFilter: false }" class=" border border-gray-300 rounded-xl">
         <div x-data="{ price: false, subLabel: false, value: '', priceAction: @entangle('price_action').live, method: '' }" class="flex justify-end py-4 pe-4 relative">
             <div class="flex justify-between items-center space-x-3">
                 <div class="  items-center w-fit rounded-2xl relative ">
@@ -126,13 +147,23 @@ new class extends Component {
                             class="ps-10 inline-block bg-gray-100 h-8 rounded-xl  ">
                     </form>
                 </div>
-                <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                <div x-data="{ range: false }" @click="range=!range" @click.outside="range = false"
+                    class="cursor-pointer relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
                     </svg>
+                    <div x-show="range" class="absolute top-10 right-0 w-40 h-fit bg-gray-800 text-white">
+                        <ul>
+                            <li @click="rangeFilter = true;" class="px-3 py-2 hover:bg-gray-500 select-none">Price Range
+                            </li>
+                            <li @click="rangeFilter = true;" class="px-3 py-2 hover:bg-gray-500 select-none">Quantity
+                                Range</li>
+                        </ul>
+                    </div>
                 </div>
-                <div x-on:click="price = !price ; value = ''" class="cursor-pointer ">
+                <div x-on:click="price = !price ; value = ''" @click.outside="price = false" class="cursor-pointer ">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -186,6 +217,29 @@ new class extends Component {
                 </div>
             </div>
         </div>
+        {{-- filter  --}}
+        <div x-show="rangeFilter" class="flex justify-between px-4">
+            <div class="py-2 px-3 border-t">
+                Active Filter: Price
+                @if ($filterPriceRange)
+                    Between
+                    <span>{{ $min }} $ and {{ $max }} $</span>
+                @endif
+                @if (!$filterPriceRange)
+                    <label for="min">min</label> <input type="number" id="min" wire:model='min'
+                        class="bg-gray-300 inline-block w-16 h-6">
+                    <label for="max">max</label> <input type="number" id="max" wire:model="max"
+                        class="bg-gray-300 inline-block w-16 h-6">
+                    <x-button wire:click="filterRange">Filter</x-button>
+                @endif
+            </div>
+            <div>
+                <button @click="rangeFilter = false"> <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg></button>
+            </div>
+        </div>
         @if ($filter)
             <div class="flex justify-between px-4">
                 <div class="py-2 px-3 border-t">
@@ -218,9 +272,9 @@ new class extends Component {
                 <thead class="bg-gray-300  ">
                     <td class="ps-3 w-8"> <input type="checkbox" {{ $checked ? 'checked' : '' }}
                             wire:click="bulkActionChecked"></td>
-                    <th class="text-start py-2 px-3 ">No.</th>
+                    <th wire:click="sortBy('number')" class="text-start py-2 px-3 cursor-pointer">No.</th>
                     <th class="text-start py-2 px-3">Name</th>
-                    <th class="text-start py-2 px-3">Price</th>
+                    <th wire:click="sortBy('price')" class="text-start py-2 px-3 cursor-pointer">Price</th>
                     <th class="text-start py-2 px-3">Quantity</th>
                     <th class="text-start py-2 px-3">Barcode</th>
                 </thead>
