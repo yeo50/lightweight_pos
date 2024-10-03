@@ -12,70 +12,58 @@ new class extends Component {
     public $total;
     public $team_id;
     public $products = [];
+    public $receipt;
+    public $payment_method;
     public function mount()
     {
         $this->total = 0;
         $user = Auth::user();
-        $currentTeamId = $user->currentTeam->id;
-
-        $teamIds = [];
-        $teams = $user->allTeams();
-
-        foreach ($teams as $key => $value) {
-            $teamIds[] = $value->id;
-        }
-        $keyId = array_search($currentTeamId, $teamIds);
-        $this->team_id = $teamIds[$keyId];
+        $this->team_id = $user->currentTeam->id;
+        $this->payment_method = 'cash';
+    }
+    public function paymentCash()
+    {
+        $this->payment_method = 'cash';
+    }
+    public function paymentMobile()
+    {
+        $this->payment_method = 'mobile banking';
     }
 
     public function barcodeDetected()
     {
-        $user = Auth::user();
-        $currentTeamId = $user->currentTeam->id;
+        $product = Product::where('team_id', $this->team_id)
+            ->where('barcode', $this->barcode)
+            ->orWhere('name', 'LIKE', '%' . $this->barcode . '%')
+            ->first();
 
-        $teamIds = [];
-        $teams = $user->allTeams();
+        if ($product) {
+            $existingProductKey = collect($this->products)->search(function ($item) use ($product) {
+                return $item['barcode'] == $product->barcode;
+            });
+            if ($existingProductKey !== false) {
+                $existingProduct = $this->products[$existingProductKey];
+                $oldTotal = $existingProduct['price'] * $existingProduct['count'];
+                $this->total -= $oldTotal;
 
-        foreach ($teams as $key => $value) {
-            $teamIds[] = $value->id;
-        }
-        $keyId = array_search($currentTeamId, $teamIds);
+                $this->products[$existingProductKey]['count']++;
+                $count = $this->products[$existingProductKey]['count'];
+                $total = $existingProduct['price'] * $count;
+                $this->total += $total;
+            } else {
+                $this->products[] = [
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'barcode' => $product->barcode,
+                    'count' => 1,
+                ];
+                $this->counts[] = 1;
 
-        if ($keyId !== false) {
-            $teamId = $teamIds[$keyId];
-
-            $product = Product::where('team_id', $teamId)
-                ->where('barcode', $this->barcode)
-                ->first();
-
-            if ($product) {
-                $existingProductKey = collect($this->products)->search(function ($item) use ($product) {
-                    return $item['barcode'] == $product->barcode;
-                });
-                if ($existingProductKey !== false) {
-                    $existingProduct = $this->products[$existingProductKey];
-                    $oldTotal = $existingProduct['price'] * $existingProduct['count'];
-                    $this->total -= $oldTotal;
-
-                    $this->products[$existingProductKey]['count']++;
-                    $count = $this->products[$existingProductKey]['count'];
-                    $total = $existingProduct['price'] * $count;
-                    $this->total += $total;
-                } else {
-                    $this->products[] = [
-                        'name' => $product->name,
-                        'price' => $product->price,
-                        'barcode' => $product->barcode,
-                        'count' => 1,
-                    ];
-                    $this->counts[] = 1;
-
-                    $total = $product->price * 1;
-                    $this->total += $total;
-                }
+                $total = $product->price * 1;
+                $this->total += $total;
             }
-            $this->barcode = '';
         }
+        $this->barcode = '';
     }
 
     public function reCount($key)
@@ -90,26 +78,30 @@ new class extends Component {
     {
         $product = $this->products[$key];
         $prevTotal = $product['price'] * $product['count'];
-
+        //remove from array
         unset($this->products[$key]);
         $this->total -= $prevTotal;
+        //rearranged array items
         $this->products = array_values($this->products);
     }
     public function completePayment()
     {
-        $newTransaction['team_id'] = $this->team_id;
-        $newTransaction['transaction_no'] = 'TRX-' . fake()->creditCardNumber();
-        $newTransaction['amount'] = $this->total;
-        $transaction = Transaction::create($newTransaction);
-        foreach ($this->products as $key => $value) {
-            $product = Product::where('team_id', $this->team_id)
-                ->where('barcode', $value['barcode'])
-                ->first();
+        DB::transaction(function () {
+            $newTransaction['team_id'] = $this->team_id;
+            $newTransaction['transaction_no'] = 'TRX-' . fake()->creditCardNumber();
+            $newTransaction['amount'] = $this->total;
+            $newTransaction['payment_method'] = $this->payment_method;
 
-            $newQuantity = $product->quantity - $value['count'];
-            $product->quantity = $newQuantity;
+            $transaction = Transaction::create($newTransaction);
+            $this->receipt = $transaction->id;
+            foreach ($this->products as $key => $value) {
+                $product = Product::where('team_id', $this->team_id)
+                    ->where('barcode', $value['barcode'])
+                    ->first();
 
-            DB::transaction(function () use ($product, $transaction, $value) {
+                $newQuantity = $product->quantity - $value['count'];
+                $product->quantity = $newQuantity;
+
                 $newSale['team_id'] = $this->team_id;
                 $newSale['transaction_id'] = $transaction->id;
                 $newSale['name'] = $product->name;
@@ -118,9 +110,10 @@ new class extends Component {
                 $newSale['total'] = $product->price * $value['count'];
                 $sale = Sale::create($newSale);
                 $product->update();
-            });
-        }
+            }
+        });
         $this->products = [];
+        return redirect()->route('sales.receipt', $this->receipt);
     }
 }; ?>
 
@@ -132,7 +125,7 @@ new class extends Component {
 
     <div class=" px-4">
         <div x-data="{ scan: true, manual: false }">
-            <div class="flex border-4 w-fit bg-gray-200 rounded-lg">
+            <div class="flex border-4 ms-2 w-fit bg-gray-200 rounded-lg">
                 <div @click= "scan = true ; manual = false" class=" font-semibold  text-[#222] px-3 py-2"
                     :class="manual ? 'shadow-lg cursor-pointer bg-white  rounded-lg' : ''">
                     Scan Barcode</div>
@@ -141,26 +134,48 @@ new class extends Component {
                     Enter Manually
                 </div>
             </div>
-            <form x-show="scan" wire:submit="barcodeDetected">
-                <div class="mt-3 space-x-2 flex px-4 py-2">
-                    <div>
-                        <input type="text" autofocus wire:input.debounce.500ms="barcodeDetected"
-                            wire:model.debounce.100ms="barcode" id="barcode"
-                            class="rounded-xl min-w-40  inline-block bg-gray-200">
+            <div class="flex justify-between ">
+                <form x-show="scan" wire:submit="barcodeDetected">
+                    <div class="mt-3 space-x-2 flex px-4 py-2">
+                        <div>
+                            <input type="text" autofocus wire:input.debounce.500ms="barcodeDetected"
+                                wire:model.debounce.100ms="barcode" id="barcode"
+                                placeholder="Scan Barcode or Enter Name"
+                                class="rounded-xl min-w-72  inline-block bg-gray-200">
+                        </div>
+                        <div data-content ="Place the cursor in input box & scan the barcode. Best tools Scan_It .Install from Play store & its website "
+                            class="inline-flex items-center font-bold text-xl cursor-pointer relative
+                            hover:before:content-[''] hover:before:absolute hover:before:left-4 before:scale-x-0 hover:before:scale-x-100
+                            hover:transition-all hover:before:duration-500 before:opacity-0 hover:before:opacity-100 before:bg-gray-700
+                            hover:before:w-5 hover:before:h-5 hover:before:rotate-45
+                             hover:after:content-[attr(data-content)] hover:after:w-80 hover:after:h-20
+                            after:absolute after:left-6 after:-top-4 after:scale-x-0 after:transition-all after:duration-150  hover:after:scale-x-100  after:text-xs after:tracking-wide hover:after:px-3 hover:after:py-2 after:bg-gray-700 after:text-white after:font-medium ">
+                            ?
+                        </div>
                     </div>
-                    <div data-content ="Place the cursor in input box & scan the barcode. Best tools Scan_It .Install from Play store & its website "
-                        class="inline-flex items-center font-bold text-xl cursor-pointer relative hover:after:content-[attr(data-content)] hover:after:w-80 hover:after:h-20
-                        after:absolute after:left-4 after:top-0 after:text-xs after:tracking-wide hover:after:px-3 hover:after:py-2 after:bg-gray-700 after:text-white after:font-medium ">
-                        ?
+                </form>
+                <form x-show="manual" wire:submit="barcodeDetected" class="mt-3 px-4 py-2">
+                    <input type="text" wire:model="barcode" placeholder="Scan Barcode or Enter Name"
+                        class="rounded-xl min-w-72  inline-block bg-gray-200">
+                    <button type="submit"
+                        class="ms-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 active:bg-indigo-600 ">Submit</button>
+                </form>
+                <div x-data="{ payment: false, method: 'Cash' }" class="cursor-pointer">
+                    <div class="flex space-x-1" @click="payment = !payment" class="cursor-pointer py-2">
+                        Payment Method - <span x-text='method'></span> <svg xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div x-show="payment" class="border">
+                        <p x-on:click="payment = false; method = 'Cash'; $wire.paymentCash()"
+                            class="ps-3 py-2 border hover:border-blue-400">Cash</p>
+                        <p x-on:click="payment = false;  method = 'Mobile Banking'; $wire.paymentMobile()"
+                            class="ps-3 py-2 border hover:border-blue-400">Mobile Banking
+                        </p>
                     </div>
                 </div>
-
-            </form>
-            <form x-show="manual" wire:submit="barcodeDetected" class="mt-3 px-4 py-2">
-                <input type="text" wire:model="barcode" class="rounded-xl min-w-40  inline-block bg-gray-200">
-                <button type="submit"
-                    class="ms-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 active:bg-indigo-600 ">Submit</button>
-            </form>
+            </div>
         </div>
 
     </div>

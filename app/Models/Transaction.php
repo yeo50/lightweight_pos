@@ -12,5 +12,6 @@ class Transaction extends Model
         'team_id',
         'transaction_no',
         'amount',
+        'payment_method',
     ];
 }

@@ -13,6 +13,8 @@ new class extends Component {
     public $checked;
     public $selected;
     public $refresh;
+    public $number;
+    public $price_action;
     public function mount()
     {
         $this->team = Auth::user()->currentTeam;
@@ -22,6 +24,7 @@ new class extends Component {
         $this->checked = false;
         $this->selected = false;
         $this->filter = false;
+        $this->price_action = false;
     }
     public function search()
     {
@@ -64,6 +67,7 @@ new class extends Component {
     {
         if (!empty($this->ids)) {
             Product::whereIn('id', $this->ids)->delete();
+
             $this->ids = [];
             $this->checked = false;
             $this->selected = false;
@@ -72,12 +76,43 @@ new class extends Component {
             session()->flash('error', 'No products selected for deletion.');
         }
     }
+    public function priceModified($value, $method)
+    {
+        foreach ($this->products as $key => $item) {
+            if ($value == 'increase') {
+                if ($method == 'percentage') {
+                    $percent = ($item->price * $this->number) / 100;
+                    $item->price += $percent;
+                    $item->price = round($item->price);
+                    $item->update();
+                } else {
+                    $item->price += $this->number;
+                    $item->update();
+                }
+            } else {
+                if ($method == 'percentage') {
+                    $percent = ($item->price * $this->number) / 100;
+                    $item->price -= $percent;
+                    $item->price = round($item->price);
+                    $item->update();
+                } else {
+                    $item->price -= $this->number;
+                    $item->update();
+                }
+            }
+        }
+        return $this->price_action = false;
+    }
+    public function mathOperation()
+    {
+        $result = '';
+    }
 }; ?>
 
 <div class="mt-4">
-
+    <button wire:click="mathOperation" class="bg-violet-600 px-3 py-2 shadow-lg rounded-lg">math operation</button>
     <div class=" border border-gray-300 rounded-xl">
-        <div class="flex justify-end py-4 pe-4">
+        <div x-data="{ price: false, subLabel: false, value: '', priceAction: @entangle('price_action').live, method: '' }" class="flex justify-end py-4 pe-4 relative">
             <div class="flex justify-between items-center space-x-3">
                 <div class="  items-center w-fit rounded-2xl relative ">
                     <form wire:submit="search">
@@ -96,6 +131,58 @@ new class extends Component {
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
                     </svg>
+                </div>
+                <div x-on:click="price = !price ; value = ''" class="cursor-pointer ">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                    </svg>
+
+                </div>
+
+                <div x-show="price"
+                    class="absolute right-0 top-16  h-fit min-w-40  z-10 bg-gray-800 rounded-sm text-white ">
+                    <p @click="subLabel = true ; value='increase'"
+                        class="px-3 py-2 select-none cursor-pointer hover:bg-gray-600">
+                        <span class="pe-2" x-text="value == 'increase' ? '&lt;' : ''"></span>Increase Price
+
+                    </p>
+
+                    <p @click="subLabel = true;value='decrease'"
+                        class="px-3 py-2 select-none cursor-pointer hover:bg-gray-600">
+                        <span class="pe-2" x-text="value == 'decrease' ? '&lt;' : ''"></span>Decrease Price
+                    </p>
+                </div>
+                <div x-show="subLabel"
+                    class="absolute right-40 top-16 w-40 h-fit rounded-lg shadow-xl bg-gray-900 z-20 text-white">
+
+                    <ul>
+                        <li @click="price = false; subLabel = false; priceAction = true;  method='percentage' "
+                            class="px-3 py-2 hover:bg-gray-600 rounded-lg">By
+                            Percentage</li>
+                        <li @click="price = false; subLabel = false; priceAction = true; method='value' "
+                            class="px-3 py-2 hover:bg-gray-600 rounded-lg">By
+                            Value</li>
+                    </ul>
+                </div>
+
+            </div>
+            <div x-show="priceAction" class="fixed inset-0 bg-gray-600/50 flex items-center justify-center">
+                <div @click.outside="priceAction = false" class="min-w-80 h-40 bg-gray-900 p-4 text-white rounded-md">
+                    <form wire:submit="priceModified(value,method)"
+                        class="w-full flex items-center justify-center flex-col space-y-3">
+                        <h1> <span x-text="value" class="capitalize"></span> Price By <span x-text="method"
+                                class="capitalize"></span></h1>
+
+                        <div>
+                            <input type="number" wire:model="number"
+                                class="bg-gray-200 mt-2 inline-block w-40 h-10 placeholder:text-xs placeholder:text-blue-600 text-black"
+                                placeholder="Enter Percentage"> <button type="submit"
+                                class="bg-violet-500 h-10 rounded-md shadow-sm shadow-white px-3 py-2">
+                                Enter</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

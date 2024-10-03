@@ -30,6 +30,7 @@ Route::middleware([
 
     Route::resource('products', ProductController::class)->except(['destroy']);
     Route::resource('sales', SaleController::class);
+    Route::get('sales/receipts/{receipt}', [SaleController::class, 'receipt'])->name('sales.receipt');
     //one way
     // Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('can:edit-product,product');
     //another way
