@@ -83,6 +83,7 @@ new class extends Component {
     }
     public function priceModified($value, $method)
     {
+        Gath::authorize('isOwner', Auth::user());
         foreach ($this->products as $key => $item) {
             if ($value == 'increase') {
                 if ($method == 'percentage') {
@@ -110,7 +111,9 @@ new class extends Component {
     }
     public function filterRange()
     {
-        $this->products = Product::whereBetween('price', [$this->min, $this->max])->get();
+        $this->products = Product::where('team_id', $this->team_id)
+            ->whereBetween('price', [$this->min, $this->max])
+            ->get();
         $this->filterPriceRange = true;
         return $this;
     }
@@ -163,15 +166,16 @@ new class extends Component {
                         </ul>
                     </div>
                 </div>
-                <div x-on:click="price = !price ; value = ''" @click.outside="price = false" class="cursor-pointer ">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                    </svg>
+                @can('isOwner', Auth::user())
+                    <div x-on:click="price = !price ; value = ''" @click.outside="price = false" class="cursor-pointer ">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                        </svg>
 
-                </div>
-
+                    </div>
+                @endcan
                 <div x-show="price"
                     class="absolute right-0 top-16  h-fit min-w-40  z-10 bg-gray-800 rounded-sm text-white ">
                     <p @click="subLabel = true ; value='increase'"

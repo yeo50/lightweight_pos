@@ -34,13 +34,16 @@ class SaleController extends Controller
         $id = $request['receipt'];
 
         $transaction = Transaction::where('team_id', $this->team_id)->where('id', $id)->first();
-        $date = Carbon::createFromFormat('Y-m-d H:i:s', $transaction->created_at);
-        $formattedDate = $date->format('d-M-y gA');
-        $formattedDate = str_replace('AM', 'am', str_replace('PM', 'pm', $formattedDate));
+        if ($transaction) {
+            $date = Carbon::createFromFormat('Y-m-d H:i:s', $transaction->created_at);
+            $formattedDate = $date->format('d-M-y gA');
+            $formattedDate = str_replace('AM', 'am', str_replace('PM', 'pm', $formattedDate));
 
-        $sales = Sale::where('team_id', $this->team_id)
-            ->where('transaction_id', $transaction->id)->get();
-        return view('sales.receipt', ['transaction' => $transaction, 'sales' => $sales, 'formattedDate' => $formattedDate]);
+            $sales = Sale::where('team_id', $this->team_id)
+                ->where('transaction_id', $transaction->id)->get();
+            return view('sales.receipt', ['transaction' => $transaction, 'sales' => $sales, 'formattedDate' => $formattedDate]);
+        }
+        abort(404);
     }
     /**
      * Show the form for creating a new resource.

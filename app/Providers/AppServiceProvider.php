@@ -29,5 +29,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('create-product', function (User $user, Team $team) {
             return $team->user->is($user);
         });
+        Gate::define('isOwner', function (User $user) {
+            return $user->currentTeam->owner->is($user);
+        });
     }
 }

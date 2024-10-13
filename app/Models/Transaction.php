@@ -14,4 +14,8 @@ class Transaction extends Model
         'amount',
         'payment_method',
     ];
+    public function totalTransac()
+    {
+        return  'hello';
+    }
 }

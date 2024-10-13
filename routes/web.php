@@ -4,19 +4,41 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Mail\UserCreated;
 use App\Models\Team;
+use App\Models\Transaction;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Carbon\Carbon;
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/date', function () {
+
+
+
+    $month = Carbon::now()->month;
+    $totalAmount = Transaction::where('team_id', 2)->whereMonth('created_at', $month)->sum('amount');
+
+    $startOfWeek = Carbon::now()->startOfWeek();
+    $endOfWeek = Carbon::now()->endOfWeek();
+    $totalAmountWeek = Transaction::where('team_id', 2)->whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('amount');
+    dd($totalAmountWeek);
+});
+
 Route::get('/test', function () {
 
-    $ownTeams = Team::where('user_id', Auth::user()->id)->get();
-    $currentTeam = Auth::user()->currentTeam;
-    dd(Auth::user()->currentTeam);
+    $user = Auth::user();
+
+
+    Gate::authorize('isOwner', $user);
     return 'Done';
 });
 Route::middleware([
@@ -27,7 +49,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-
     Route::resource('products', ProductController::class)->except(['destroy']);
     Route::resource('sales', SaleController::class);
     Route::get('sales/receipts/{receipt}', [SaleController::class, 'receipt'])->name('sales.receipt');

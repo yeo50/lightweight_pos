@@ -17,6 +17,6 @@
 }
 @layer utilities {
     .active {
-        @apply bg-gray-200 rounded-md text-rose-600;
+        @apply bg-gray-200 rounded-md text-violet-700;
     }
 }

@@ -45,4 +45,8 @@
             </div>
         </div>
     @endif
+    <div class="flex justify-between p-4">
+        <x-anchor-button href="{{ route('sales.index') }}">Back</x-anchor-button>
+        <x-button>Print</x-button>
+    </div>
 </x-app-layout>
