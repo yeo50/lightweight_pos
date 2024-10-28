@@ -294,6 +294,10 @@ new class extends Component {
                         <td class=" text-start px-3 py-2">{{ $item->price }} $</td>
                         <td class=" text-start px-3 py-2">{{ $item->quantity }}</td>
                         <td class=" text-start px-3 py-2">{{ $item->barcode }}</td>
+                        <td class=" text-start px-3 py-2">
+                            <img src="{{ asset('storage/' . $item->photo) }}" alt="{{ $item->name }}"
+                                class="w-20 h-20 object-contain">
+                        </td>
                         @can('edit-product', $item)
                             <td><a href="{{ route('products.edit', $item->id) }}"
                                     class="font-semibold text-violet-600">Edit</a></td>

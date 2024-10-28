@@ -70,9 +70,9 @@
         </main>
     </div>
 
-    @stack('modals')
-
     @livewireScripts
+    @stack('scripts')
+    @stack('modals')
 </body>
 
 </html>

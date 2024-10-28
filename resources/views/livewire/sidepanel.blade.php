@@ -8,7 +8,7 @@ new class extends Component {
 
 <div class="px-6">
     <ul>
-        <a wire:navigate href="/dashboard">
+        <a href="{{ route('dashboard') }}">
             <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'dashboard' ? 'active' : '' }}">Dashboard
             </li>
         </a>

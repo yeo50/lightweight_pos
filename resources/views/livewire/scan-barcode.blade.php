@@ -210,6 +210,7 @@ new class extends Component {
             </table>
         </div>
         <aside class=" p-4">
+            <h1 class="text-center text-xl font-bold my-2">Summary</h1>
             <div class="flex justify-between py-2  font-semibold text-lg">
                 <span>Subtotal</span>
                 <span>{{ $total }} $</span>

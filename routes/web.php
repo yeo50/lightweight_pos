@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MainController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Mail\UserCreated;
@@ -46,9 +47,10 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get(
+        '/dashboard',
+        [MainController::class, 'dashboard']
+    )->name('dashboard');
     Route::resource('products', ProductController::class)->except(['destroy']);
     Route::resource('sales', SaleController::class);
     Route::get('sales/receipts/{receipt}', [SaleController::class, 'receipt'])->name('sales.receipt');

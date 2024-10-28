@@ -40,6 +40,10 @@ new class extends Component {
             $this->mostSoldItemCount = $mostSoldItem ? $mostSoldItem->total_count : '00';
         }
     }
+    public function testTeam()
+    {
+        dd(Auth::user()->currentTeam);
+    }
 }; ?>
 <section class="flex space-x-3">
 
@@ -48,3 +52,6 @@ new class extends Component {
     <x-infos mainLabel="Most Sold Item" amount="{{ $mostSoldItemCount }}" mostSoldItem="{{ $mostSoldItem }}"></x-infos>
 
 </section>
+{{-- <div>
+    <button wire:click="testTeam">click test</button>
+</div> --}}

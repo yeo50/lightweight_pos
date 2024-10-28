@@ -7,7 +7,7 @@
         <h1 class="text-2xl mt-4 font-semibold">Add Product to <span class="text-3xl font-bold">{{ $team->name }}</span>
         </h1>
         <div class="mt-8">
-            <form action="{{ route('products.store') }}" method="POST">
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div>
                     <input type="hidden" name="team_id" value="{{ $team->id }}">
@@ -41,6 +41,10 @@
                                 class="rounded-xl block w-4/5 bg-gray-200">
                         </div>
                     </div>
+                    <div>
+                        <input type="file" name="photo" id="photo">
+                    </div>
+
                 </div>
                 <div class="mt-4 space-x-3 ps-4">
                     <x-button class="hover:ring focus:ring active:ring min-w-20 inline-flex justify-center">Add

@@ -77,45 +77,47 @@ class Team extends JetstreamTeam
     }
     public function totalTransac()
     {
-        return  Transaction::count();
+        return  Transaction::where('team_id', $this->id)->count();
     }
 
     public function totalTransaction($dateFormat)
     {
         if ($dateFormat == 'Today') {
-            return Transaction::whereDate('created_at', $this->today)->count();
+            return Transaction::where('team_id', $this->id)->whereDate('created_at', $this->today)->count();
         }
         if ($dateFormat == 'This Week') {
-            return Transaction::whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])->count();
+            return Transaction::where('team_id', $this->id)->whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])->count();
         }
         if ($dateFormat == 'This Month') {
-            return Transaction::whereMonth('created_at', $this->thisMonth)->count();
+            return Transaction::where('team_id', $this->id)->whereMonth('created_at', $this->thisMonth)->count();
         }
         if ($dateFormat == 'This Year') {
-            return Transaction::whereYear('created_at', $this->thisYear)->count();
+            return Transaction::where('team_id', $this->id)->whereYear('created_at', $this->thisYear)->count();
         }
     }
     public function totalSaleAmount($dateFormat)
     {
+
+
         if ($dateFormat == 'Today') {
-            return Transaction::whereDate('created_at', $this->today)->sum('amount');
+            return Transaction::where('team_id', $this->id)->whereDate('created_at', $this->today)->sum('amount');
         }
 
         if ($dateFormat == 'This Week') {
-            return Transaction::whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])->sum('amount');
+            return Transaction::where('team_id', $this->id)->whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])->sum('amount');
         }
         if ($dateFormat == 'This Month') {
-            return Transaction::whereMonth('created_at', $this->thisMonth)->sum('amount');
+            return Transaction::where('team_id', $this->id)->whereMonth('created_at', $this->thisMonth)->sum('amount');
         }
         if ($dateFormat == 'This Year') {
-            return Transaction::whereYear('created_at', $this->thisYear)->sum('amount');
+            return Transaction::where('team_id', $this->id)->whereYear('created_at', $this->thisYear)->sum('amount');
         }
     }
     public function mostSoldItem($dateFormat)
     {
         if ($dateFormat == 'Today') {
             return Sale::select('name', DB::raw('sum(count) as total_count'))
-                ->whereDate('created_at', $this->today)
+                ->where('team_id', $this->id)->whereDate('created_at', $this->today)
                 ->groupBy('name')
                 ->orderBy('total_count', 'DESC')
                 ->limit(1)
@@ -123,7 +125,7 @@ class Team extends JetstreamTeam
         }
         if ($dateFormat == 'This Week') {
             return Sale::select('name', DB::raw('sum(count) as total_count'))
-                ->whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])
+                ->where('team_id', $this->id)->whereBetween('created_at', [$this->startOfWeek, $this->endOfWeek])
                 ->groupBy('name')
                 ->orderBy('total_count', 'DESC')
                 ->limit(1)
@@ -131,7 +133,7 @@ class Team extends JetstreamTeam
         }
         if ($dateFormat == 'This Month') {
             return Sale::select('name', DB::raw('sum(count) as total_count'))
-                ->whereMonth('created_at', $this->thisMonth)
+                ->where('team_id', $this->id)->whereMonth('created_at', $this->thisMonth)
                 ->groupBy('name')
                 ->orderBy('total_count', 'DESC')
                 ->limit(1)
@@ -139,7 +141,7 @@ class Team extends JetstreamTeam
         }
         if ($dateFormat == 'This Year') {
             return Sale::select('name', DB::raw('sum(count) as total_count'))
-                ->whereYear('created_at', $this->thisYear)
+                ->where('team_id', $this->id)->whereYear('created_at', $this->thisYear)
                 ->groupBy('name')
                 ->orderBy('total_count', 'DESC')
                 ->limit(1)

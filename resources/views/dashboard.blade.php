@@ -3,5 +3,6 @@
         dashboard
     </x-slot>
     <livewire:info-boxs />
+    <livewire:bar-chart />
 
 </x-app-layout>

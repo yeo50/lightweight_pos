@@ -14,7 +14,8 @@ class Product extends Model
         'quantity',
         'price',
         'barcode',
-        'count'
+        'count',
+        'photo'
     ];
     public function team()
     {

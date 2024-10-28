@@ -47,18 +47,14 @@ class ProductController extends Controller
         $new = $request->all();
         $user = Auth::user();
         $team = $user->currentTeam;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $new['photo'] = $photoPath;
+        };
         Gate::authorize('create-product', $team);
-
 
         Product::create($new);
         return redirect()->route('products.index')->with('message', 'new product added successfully');
-        // $ownsTeam = $user->id == $team->user_id;
-
-        // if ($ownsTeam) {
-        //     Product::create($new);
-        //     return redirect()->route('products.index')->with('message', 'new product added successfully');
-        // }
-        // return redirect()->route('products.index')->with('err-message', 'you need permission to add');
     }
 
     /**
