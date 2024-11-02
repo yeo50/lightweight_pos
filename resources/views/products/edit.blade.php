@@ -49,13 +49,7 @@
                             <x-input-error for="name"></x-input-error>
                         </div>
                     </div>
-                    <div class="mt-3 pace-y-2 px-4 py-2">
-                        <label for="quantity" class="font-semibold ps-1 py-1">Quantity</label> <br>
-                        <div>
-                            <input type="number" name="quantity" id="quantity" value="{{ $product->quantity }}"
-                                class="rounded-xl block w-4/5 bg-gray-200">
-                        </div>
-                    </div>
+
                     <div class="mt-3 pace-y-2 px-4 py-2">
                         <label for="price" class="font-semibold ps-1 py-1">Price</label> <br>
                         <div>
@@ -69,6 +63,11 @@
                             <input type="text" name="barcode" id="barcode" value="{{ $product->barcode }}"
                                 class="rounded-xl block w-4/5 bg-gray-200">
                         </div>
+                    </div>
+                    <div class="mt-3 space-y-2 px-4 py-2">
+                        <label for="photo" class="font-semibold ps-1 py-1">Upload Product's Photo</label>
+                        <input type="file" name="photo" id="photo"
+                            class="rounded-xl ps-3 py-2 block w-4/5 bg-gray-200">
                     </div>
                 </div>
                 <div class="mt-4 ps-4 space-x-3">

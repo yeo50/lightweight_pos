@@ -51,6 +51,7 @@ class ProductController extends Controller
             $photoPath = $request->file('photo')->store('photos', 'public');
             $new['photo'] = $photoPath;
         };
+        $new['quantity'] = 0;
         Gate::authorize('create-product', $team);
 
         Product::create($new);
@@ -83,6 +84,7 @@ class ProductController extends Controller
         Gate::authorize('edit-product', $product);
 
         $new = $request->all();
+        $new['quantity'] = 0;
         $product->update($new);
         return redirect()->route('products.index');
     }

@@ -63,7 +63,7 @@ new class extends Component {
 }; ?>
 
 <div>
-    <h1>click</h1>
+
     <div>
         <canvas id="myChart"></canvas>
     </div>

@@ -58,7 +58,5 @@ Route::middleware([
     // Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('can:edit-product,product');
     //another way
     Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->can('edit-product', 'product');
-    Route::get('/instocks', function () {
-        return view('instocks');
-    })->name('instocks');
+    Route::get('/instocks', [MainController::class, 'instocks'])->name('instocks');
 });

@@ -19,26 +19,36 @@ new class extends Component {
     public $max;
     public $filterPriceRange;
     public $sortBoo;
+    public $notFound;
     public function mount()
     {
+        $this->products = collect();
         $this->team = Auth::user()->currentTeam;
         $this->user_id = $this->team->user_id;
+        $this->notFound = false;
+        $products = Product::where('team_id', $this->team->id)->get();
+        if ($products->isEmpty()) {
+            $this->notFound = true;
+        }
+        $this->products = $products;
 
-        $this->products = Product::where('team_id', $this->team->id)->get();
         $this->checked = false;
         $this->selected = false;
         $this->filter = false;
         $this->price_action = false;
         $this->filterPriceRange = false;
     }
+
     public function search()
     {
-        $this->products = Product::where('team_id', $this->team->id)
-            ->where('name', 'LIKE', '%' . $this->search_value . '%')
-            ->get();
-        $this->filter = true;
+        if ($this->search_value !== null) {
+            $this->products = Product::where('team_id', $this->team->id)
+                ->where('name', 'LIKE', '%' . $this->search_value . '%')
+                ->get();
+            $this->filter = true;
 
-        return $this;
+            return $this;
+        }
     }
     public function searchCancel()
     {
@@ -83,7 +93,7 @@ new class extends Component {
     }
     public function priceModified($value, $method)
     {
-        Gath::authorize('isOwner', Auth::user());
+        Gate::authorize('isOwner', Auth::user());
         foreach ($this->products as $key => $item) {
             if ($value == 'increase') {
                 if ($method == 'percentage') {
@@ -109,13 +119,38 @@ new class extends Component {
         }
         return $this->price_action = false;
     }
-    public function filterRange()
+    public function filterRange($value)
     {
-        $this->products = Product::where('team_id', $this->team_id)
-            ->whereBetween('price', [$this->min, $this->max])
-            ->get();
+        if ($value === 'price') {
+            $products = Product::where('team_id', $this->team->id)
+                ->whereBetween('price', [$this->min, $this->max])
+                ->get()
+                ->collect();
+            if ($products->isEmpty()) {
+                $this->notFound = true;
+            }
+            $this->products = $products;
+        }
+        if ($value === 'quantity') {
+            $products = Product::where('team_id', $this->team->id)
+                ->whereBetween('quantity', [$this->min, $this->max])
+                ->get()
+                ->collect();
+            if ($products->isEmpty()) {
+                $this->notFound = true;
+            }
+            $this->products = $products;
+        }
+
         $this->filterPriceRange = true;
-        return $this;
+    }
+    public function rangeFilterCancel()
+    {
+        $this->products = Product::where('team_id', $this->team->id)->get();
+        $this->notFound = false;
+        $this->filterPriceRange = false;
+        $this->min = '';
+        $this->max = '';
     }
     public function sortBy($name)
     {
@@ -135,7 +170,8 @@ new class extends Component {
 
 <div class="mt-4">
 
-    <div x-data="{ rangeFilter: false }" class=" border border-gray-300 rounded-xl">
+
+    <div x-data="{ rangeFilter: false, rangeFilterValue: '' }" class=" border border-gray-300 rounded-xl">
         <div x-data="{ price: false, subLabel: false, value: '', priceAction: @entangle('price_action').live, method: '' }" class="flex justify-end py-4 pe-4 relative">
             <div class="flex justify-between items-center space-x-3">
                 <div class="  items-center w-fit rounded-2xl relative ">
@@ -150,7 +186,7 @@ new class extends Component {
                             class="ps-10 inline-block bg-gray-100 h-8 rounded-xl  ">
                     </form>
                 </div>
-                <div x-data="{ range: false }" @click="range=!range" @click.outside="range = false"
+                <div x-data="{ range: false, }" @click="range=!range" @click.outside="range = false"
                     class="cursor-pointer relative">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">
@@ -159,15 +195,17 @@ new class extends Component {
                     </svg>
                     <div x-show="range" class="absolute top-10 right-0 w-40 h-fit bg-gray-800 text-white">
                         <ul>
-                            <li @click="rangeFilter = true;" class="px-3 py-2 hover:bg-gray-500 select-none">Price Range
+                            <li @click="rangeFilter = true;rangeFilterValue = 'price'"
+                                class="px-3 py-2 hover:bg-gray-500 select-none">Price Range
                             </li>
-                            <li @click="rangeFilter = true;" class="px-3 py-2 hover:bg-gray-500 select-none">Quantity
+                            <li @click="rangeFilter = true;rangeFilterValue = 'quantity'"
+                                class="px-3 py-2 hover:bg-gray-500 select-none">Quantity
                                 Range</li>
                         </ul>
                     </div>
                 </div>
                 @can('isOwner', Auth::user())
-                    <div x-on:click="price = !price ; value = ''" @click.outside="price = false" class="cursor-pointer ">
+                    <div x-on:click="price = !price; if(!price) subLabel = false ; value = ''" class="cursor-pointer ">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -224,7 +262,7 @@ new class extends Component {
         {{-- filter  --}}
         <div x-show="rangeFilter" class="flex justify-between px-4">
             <div class="py-2 px-3 border-t">
-                Active Filter: Price
+                Active Filter: <span class="capitalize" x-text="rangeFilterValue"></span>
                 @if ($filterPriceRange)
                     Between
                     <span>{{ $min }} $ and {{ $max }} $</span>
@@ -234,14 +272,15 @@ new class extends Component {
                         class="bg-gray-300 inline-block w-16 h-6">
                     <label for="max">max</label> <input type="number" id="max" wire:model="max"
                         class="bg-gray-300 inline-block w-16 h-6">
-                    <x-button wire:click="filterRange">Filter</x-button>
+                    <x-button x-on:click="$wire.filterRange(rangeFilterValue)">Filter</x-button>
                 @endif
             </div>
             <div>
-                <button @click="rangeFilter = false"> <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+                <button x-on:click="rangeFilter = false ; $wire.rangeFilterCancel(rangeFilterValue); $wire.$refresh()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-8 w-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg></button>
+                    </svg> </button>
             </div>
         </div>
         @if ($filter)
@@ -281,30 +320,11 @@ new class extends Component {
                     <th wire:click="sortBy('price')" class="text-start py-2 px-3 cursor-pointer">Price</th>
                     <th class="text-start py-2 px-3">Quantity</th>
                     <th class="text-start py-2 px-3">Barcode</th>
+                    <th class="text-start py-2 px-3">Image</th>
+                    <th class="text-start py-2 px-3">Action</th>
                 </thead>
-                @foreach ($products as $key => $item)
-                    <tr :key={{ $key }}>
-                        <td class="ps-3 w-8">
-                            <input type="checkbox" wire:model="ids" value="{{ $item->id }}" class="bg-gray-300"
-                                wire:click="selectedItem">
-                        </td>
 
-                        <td class=" text-start px-3 py-2 ">{{ $key + 1 }}</td>
-                        <td class=" text-start px-3 py-2">{{ $item->name }}</td>
-                        <td class=" text-start px-3 py-2">{{ $item->price }} $</td>
-                        <td class=" text-start px-3 py-2">{{ $item->quantity }}</td>
-                        <td class=" text-start px-3 py-2">{{ $item->barcode }}</td>
-                        <td class=" text-start px-3 py-2">
-                            <img src="{{ asset('storage/' . $item->photo) }}" alt="{{ $item->name }}"
-                                class="w-20 h-20 object-contain">
-                        </td>
-                        @can('edit-product', $item)
-                            <td><a href="{{ route('products.edit', $item->id) }}"
-                                    class="font-semibold text-violet-600">Edit</a></td>
-                        @endcan
-
-                    </tr>
-                @endforeach
+                <x-product-items :products="$products" :notFound="$notFound" />
 
             </table>
         </form>
