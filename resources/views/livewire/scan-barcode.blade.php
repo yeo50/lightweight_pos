@@ -41,6 +41,7 @@ new class extends Component {
             $existingProductKey = collect($this->products)->search(function ($item) use ($product) {
                 return $item['barcode'] == $product->barcode;
             });
+
             if ($existingProductKey !== false) {
                 $existingProduct = $this->products[$existingProductKey];
                 $oldTotal = $existingProduct['price'] * $existingProduct['count'];
@@ -119,31 +120,28 @@ new class extends Component {
 
 <div>
 
-    <h1> 8836000165850</h1>
-    <h1>8836000189078</h1>
-    <h1> 8836000192443</h1>
-
-    <div class=" px-4 grid grid-cols-[minmax(0,1fr)_250px]">
+    <div class=" px-4 md:grid md:grid-cols-[minmax(0,1fr)_250px]">
         <div>
-            <div x-data="{ scan: true, manual: false }">
+            <div x-data="{ scan: 'barcode' }">
                 <div class="flex border-4 ms-2 w-fit bg-gray-200 rounded-lg">
-                    <div @click= "scan = true ; manual = false" class=" font-semibold  text-[#222] px-3 py-2"
-                        :class="manual ? 'shadow-lg cursor-pointer bg-white  rounded-lg' : ''">
+                    <div @click= "scan = 'barcode' " class=" font-semibold  text-[#222] px-3 py-2"
+                        :class="scan === 'barcode' ? '' : 'shadow-lg cursor-pointer bg-white  rounded-lg'">
                         Scan Barcode</div>
-                    <div @click="scan = false; manual = true;" class=" font-semibold text-[#222] px-3 py-2  "
-                        :class="scan ? 'shadow-lg cursor-pointer bg-white  rounded-lg' : ''">
+                    <div @click="scan = 'name'" class=" font-semibold text-[#222] px-3 py-2  "
+                        :class="scan === 'name' ? '' : 'shadow-lg cursor-pointer bg-white  rounded-lg'">
                         Enter Manually
                     </div>
                 </div>
                 <div class="flex justify-between ">
-                    <form x-show="scan" wire:submit="barcodeDetected">
+                    <form x-show="scan  === 'barcode'" wire:submit="barcodeDetected">
                         <div class="mt-3 space-x-2 flex px-4 py-2">
-                            <div>
+                            <div wire:loading.remove>
                                 <input type="text" autofocus wire:input.debounce.500ms="barcodeDetected"
-                                    wire:model.debounce.100ms="barcode" id="barcode"
-                                    placeholder="Scan Barcode or Enter Name"
+                                    wire:model.debounce.100ms="barcode" id="barcode" placeholder="Scan Barcode"
                                     class="rounded-xl min-w-72  inline-block bg-gray-200">
+
                             </div>
+                            <div class="loader" wire:loading></div>
                             <div data-content ="Place the cursor in input box & scan the barcode. Best tools Scan_It .Install from Play store & its website "
                                 class="inline-flex items-center font-bold text-xl cursor-pointer relative
                             hover:before:content-[''] hover:before:absolute hover:before:left-4 before:scale-x-0 hover:before:scale-x-100
@@ -155,11 +153,11 @@ new class extends Component {
                             </div>
                         </div>
                     </form>
-                    <form x-show="manual" wire:submit="barcodeDetected" class="mt-3 px-4 py-2">
-                        <input type="text" wire:model="barcode" placeholder="Scan Barcode or Enter Name"
+                    <form x-show="scan === 'name'" wire:submit="barcodeDetected" class="mt-3 px-4 py-2">
+                        <input type="text" wire:model="barcode" placeholder="Enter Name Or Barcode"
                             class="rounded-xl min-w-72  inline-block bg-gray-200">
                         <button type="submit"
-                            class="ms-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 active:bg-indigo-600 ">Submit</button>
+                            class="ms-2 max-md:mt-2 text-white rounded-xl shadow-sm font-semibold px-3 py-2 bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 active:bg-indigo-600 ">Submit</button>
                     </form>
 
                 </div>
@@ -168,11 +166,11 @@ new class extends Component {
 
             <table class="w-[90%] border px-4 py-6 me-auto ms-4 mt-8 ">
                 <thead class="border-b bg-gray-200">
-                    <th class="px-3 py-2 text-start">No.</th>
-                    <th class="px-3 py-2 text-start">Name</th>
-                    <th class="px-3 py-2 text-start">Price</th>
-                    <th class="px-3 py-2 text-start">Quantity</th>
-                    <th class="px-3 py-2 text-start">Costs</th>
+                    <th class="max-sm:px-1 max-sm:font-semibold px-3 py-2 text-start">No.</th>
+                    <th class="max-sm:px-1 max-sm:font-semibold px-3 py-2 text-start">Name</th>
+                    <th class="max-sm:px-1 max-sm:font-semibold px-3 py-2 text-start">Price</th>
+                    <th class="max-sm:px-1 max-sm:font-semibold px-3 py-2 text-start">Quantity</th>
+                    <th class="max-sm:px-1 max-sm:font-semibold px-3 py-2 text-start">Costs</th>
                     <th></th>
 
                 </thead>
@@ -209,7 +207,7 @@ new class extends Component {
 
             </table>
         </div>
-        <aside class=" p-4">
+        <aside class=" p-4 max-md:mt-6">
             <h1 class="text-center text-xl font-bold my-2">Summary</h1>
             <div class="flex justify-between py-2  font-semibold text-lg">
                 <span>Subtotal</span>

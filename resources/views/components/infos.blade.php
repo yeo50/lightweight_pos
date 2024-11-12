@@ -1,10 +1,11 @@
-      <div x-data="{ open: false, timePeriod: ['today', 'Week', 'Month', 'Year'], currentPeriod: 'This Month', }" class="flex-1 md:min-h-36 border shadow-lg rounded-lg px-4 py-3">
+      <div x-data="{ open: false, timePeriod: ['today', 'Week', 'Month', 'Year'], currentPeriod: 'This Month', }"
+          class="flex-1 md:min-h-36 max-md:mt-2  border shadow-lg rounded-lg max-lg:px-2 px-4 py-3">
 
           <div class="flex justify-between ">
-              <div class="flex-1">
-                  <p class="capitalize text-sm">{{ Auth::user()->currentTeam->name }}</p>
-                  <h1 class="py-2 font-semibold tracking-wider text-xl">{{ $mainLabel ?? '' }} </h1>
-                  <h1 class="py-2  font-bold tracking-widest text-blue-600 text-lg">
+              <div class="flex-1 ">
+                  <p class="capitalize text-sm">{{ str_replace('Team', 'Store', Auth::user()->currentTeam->name) }}</p>
+                  <h1 class="py-2 font-semibold lg:tracking-wider text-lg lg:text-xl">{{ $mainLabel ?? '' }} </h1>
+                  <h1 class="py-2  font-bold lg:tracking-widest text-blue-600 text-lg">
                       @if ($mainLabel == 'Total Sale Amount')
                           <span>{{ $amount ?? '00' }} $</span>
                       @elseif ($mainLabel == 'Total Transaction')
@@ -18,9 +19,9 @@
 
                   </h1>
               </div>
-              <div>
+              <div class="shrink-0  ">
                   <button @click="open = !open;" x-text="currentPeriod"
-                      class="px-3 py-2 text-xs border rounded-md shadow-md">
+                      class="px-2 lg:px-3 py-2 text-xs border rounded-md shadow-md">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                           stroke="currentColor" class="h-3 w-3 inline-block">
                           <path stroke-linecap="round" stroke-linejoin="round"

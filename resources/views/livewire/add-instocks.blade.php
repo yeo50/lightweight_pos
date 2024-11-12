@@ -72,7 +72,7 @@ new class extends Component {
     }
 };
 ?>
-<div class="grid grid-cols-[minmax(0,1fr)_250px] p-4">
+<div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_250px] p-4">
     <div>
         <div class="border  p-4 rounded-lg">
             <div class="flex justify-end my-3">
@@ -104,21 +104,24 @@ new class extends Component {
             <table class="w-full">
                 <thead>
                     <tr>
-                        <td class="px-2 py-4 text-start font-bold">No.</td>
-                        <td class="px-2 py-4 text-start font-bold">Name</td>
-                        <td class="px-2 py-4 text-start font-bold">Old Quantity</td>
-                        <td class="px-2 py-4 text-start font-bold">Add Quantity</td>
-                        <td class="px-2 py-4 text-start font-bold">New Quantity</td>
+                        <td class="px-1 max-sm:text-xs max-sm:font-semibold sm:px-2 py-4 text-start font-bold">No.</td>
+                        <td class="px-1 max-sm:text-xs max-sm:font-semibold sm:px-2 py-4 text-start font-bold">Name</td>
+                        <td class="px-1 max-sm:text-xs max-sm:font-semibold sm:px-2 py-4 text-start font-bold">Old
+                            Quantity</td>
+                        <td class="px-1 max-sm:text-xs max-sm:font-semibold sm:px-2 py-4 text-start font-bold">Add
+                            Quantity</td>
+                        <td class="px-1 max-sm:text-xs max-sm:font-semibold sm:px-2 py-4 text-start font-bold">New
+                            Quantity</td>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!empty($products))
                         @foreach ($products as $key => $item)
                             <tr :key={{ $key }} x-data="{ addQty: false }">
-                                <td class="text-start p-2">{{ $key }}</td>
-                                <td class="text-start p-2">{{ $item['name'] }}</td>
-                                <td class="text-start p-2">{{ $item['oldQuantity'] }}</td>
-                                <td @click="addQty =true" class="text-start p-2 cursor-pointer"
+                                <td class="text-start px-1 sm:p-2">{{ $key + 1 }}</td>
+                                <td class="text-start px-1 sm:p-2">{{ $item['name'] }}</td>
+                                <td class="text-start px-1 sm:p-2">{{ $item['oldQuantity'] }}</td>
+                                <td @click="addQty =true" class="text-start px-1 sm:p-2 cursor-pointer"
                                     :class="addQty ? 'hidden' : ''">add</td>
                                 <td x-show="addQty">
 
@@ -127,7 +130,7 @@ new class extends Component {
                                         class="inline-block min-w-10 w-20 bg-gray-200">
 
                                 </td>
-                                <td class="text-start p-2">{{ $item['newQuantity'] }}</td>
+                                <td class="text-start px-1 sm:p-2">{{ $item['newQuantity'] }}</td>
                             </tr>
                         @endforeach
                     @endif

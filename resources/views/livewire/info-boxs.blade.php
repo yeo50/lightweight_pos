@@ -45,13 +45,10 @@ new class extends Component {
         dd(Auth::user()->currentTeam);
     }
 }; ?>
-<section class="flex space-x-3">
+<section class=" md:flex lg:space-x-3 ">
 
     <x-infos mainLabel="Total Sale Amount" amount="{{ $totalSaleAmount }}"></x-infos>
     <x-infos mainLabel="Total Transaction" amount="{{ $totalTransaction }}"></x-infos>
     <x-infos mainLabel="Most Sold Item" amount="{{ $mostSoldItemCount }}" mostSoldItem="{{ $mostSoldItem }}"></x-infos>
 
 </section>
-{{-- <div>
-    <button wire:click="testTeam">click test</button>
-</div> --}}

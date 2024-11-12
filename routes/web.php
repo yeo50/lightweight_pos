@@ -21,27 +21,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/date', function () {
 
-
-
-    $month = Carbon::now()->month;
-    $totalAmount = Transaction::where('team_id', 2)->whereMonth('created_at', $month)->sum('amount');
-
-    $startOfWeek = Carbon::now()->startOfWeek();
-    $endOfWeek = Carbon::now()->endOfWeek();
-    $totalAmountWeek = Transaction::where('team_id', 2)->whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('amount');
-    dd($totalAmountWeek);
-});
-
-Route::get('/test', function () {
-
-    $user = Auth::user();
-
-
-    Gate::authorize('isOwner', $user);
-    return 'Done';
-});
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

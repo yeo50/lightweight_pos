@@ -5,8 +5,8 @@
     <div class="p-8">
         <p class="text-sm text-gray-600 font-semibold">Products &gt; Edit</p>
         <div class="flex justify-between px-4 py-3">
-            <h1 class="text-2xl mt-4 font-semibold">Edit Product to <span
-                    class="text-3xl font-bold">{{ $product->team->name }}</span>
+            <h1 class="text-lg md:text-2xl mt-4 font-semibold">Edit Product to <span
+                    class="text-xl md:text-3xl font-bold">{{ str_replace('Team', 'Store', $product->team->name) }}</span>
             </h1>
             <form action="{{ route('products.destroy', $product->id) }}" method="POST" x-data="{ open: false }"
                 @submit.prevent="if (open) $el.submit()">
@@ -40,7 +40,7 @@
                 <div>
                     <input type="hidden" name="team_id" value="{{ $product->team->id }}">
                 </div>
-                <div class="grid grid-cols-2">
+                <div class="grid grid-cols-1 md:grid-cols-2">
                     <div class="mt-3 pace-y-2 px-4 py-2">
                         <label for="name" class="font-semibold ps-1 py-1">Name</label> <br>
                         <div>
@@ -72,7 +72,7 @@
                 </div>
                 <div class="mt-4 ps-4 space-x-3">
                     <x-button
-                        class="hover:ring focus:ring active:ring inline-flex min-w-20 items-center justify-center">Update</x-button>
+                        class="hover:ring focus:ring active:ring inline-flex min-w-20 min-h-10 items-center justify-center">Update</x-button>
                     <a href="{{ route('products.index') }}"
                         class="border px-3 py-[7px]  inline-flex items-center justify-center rounded-md min-w-20 border-gray-500  hover:ring focus:ring active:ring   hover:bg-transparent hover:border-black
                             focus:bg-transparent active:bg-transparent">

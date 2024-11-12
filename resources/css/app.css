@@ -7,7 +7,7 @@
 } */
 @layer base {
     body {
-        @apply font-montserrat; /* Applies the default sans-serif font to the body */
+        @apply font-montserrat;
     }
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
@@ -18,5 +18,19 @@
 @layer utilities {
     .active {
         @apply bg-gray-200 rounded-md text-violet-700;
+    }
+
+    .loader {
+        width: 280px;
+        aspect-ratio: 10;
+        background: radial-gradient(circle closest-side, #000 30%, #0000) 0 /
+            calc(100% / 3) 100% space;
+        clip-path: inset(0 100% 0 0);
+        animation: l1 0.8s steps(4) infinite;
+    }
+    @keyframes l1 {
+        to {
+            clip-path: inset(0 -34% 0 0);
+        }
     }
 }
