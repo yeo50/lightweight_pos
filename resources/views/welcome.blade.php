@@ -1,7 +1,13 @@
 <x-guest-layout>
     <div class="w-full h-screen bg-violet-600">
 
-        <nav class="w-full h-16  flex justify-end  py-2 bg-violet-700 shadow-md">
+        <nav class="w-full h-16  flex justify-between  py-2 px-4 bg-violet-700 shadow-md">
+            @guest
+                <div></div>
+            @endguest
+            @auth
+                <a class="text-xl text-white font-semibold items-center" href="{{ route('dashboard') }}">Dashboard</a>
+            @endauth
             <ul class="flex justify-between items-center gap-4 pe-3 select-none   text-xl font-semibold  text-white">
                 @guest
                     <li><a href="/login">Login</a></li>

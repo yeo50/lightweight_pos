@@ -21,7 +21,7 @@ new class extends Component {
             </li>
         </a>
         <a wire:navigate href="/instocks">
-            <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'instocks' ? 'active' : '' }}">Instocks
+            <li class="px-3 py-2 font-semibold cursor-pointer {{ $active == 'instocks' ? 'active' : '' }}">Add Stock
             </li>
         </a>
 

@@ -6,4 +6,7 @@ Start Store POS using laravel jetstream  team
           5. You Cashier Can See Your Product 
           6. Your Cashier Can't Add Product to Your Store or Delete or Update
           7. Your Cashier Only  Allow Some Operation which can Update Database.
+          8. you or your cashier can operate sale. 
+          9.see  detail of your store performance 
+          10. add new instock to your existing products 
           
