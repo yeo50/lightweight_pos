@@ -57,6 +57,7 @@ new class extends Component {
                     'price' => $product->price,
                     'barcode' => $product->barcode,
                     'count' => 1,
+                    'quantity' => $product->quantity,
                 ];
                 $this->counts[] = 1;
 
@@ -69,11 +70,13 @@ new class extends Component {
 
     public function reCount($key)
     {
-        $prevTotal = $this->products[$key]['price'] * $this->products[$key]['count'];
-        $this->total -= $prevTotal;
-        $this->products[$key]['count'] = $this->counts[$key];
-        $total = $this->products[$key]['price'] * $this->products[$key]['count'];
-        $this->total += $total;
+        if ($this->counts[$key] < $this->products[$key]['quantity']) {
+            $prevTotal = $this->products[$key]['price'] * $this->products[$key]['count'];
+            $this->total -= $prevTotal;
+            $this->products[$key]['count'] = $this->counts[$key];
+            $total = $this->products[$key]['price'] * $this->products[$key]['count'];
+            $this->total += $total;
+        }
     }
     public function cancel($key)
     {
@@ -176,19 +179,36 @@ new class extends Component {
                 </thead>
                 @if ($products)
                     @foreach ($products as $key => $item)
-                        <tr :key={{ $key }} x-data="{ changeCount: false }">
+                        <tr :key={{ $key }} x-data="{
+                            conditionOrigin: true,
+                            conditionChange: false,
+                            conditionExceed: false,
+                            exceedProduct: 1,
+                        }">
                             <td class="px-3 py-2 text-start">{{ $key + 1 }}</td>
                             <td class="px-3 py-2 text-start">{{ $item['name'] }}</td>
-                            <td class="px-3 py-2 text-start">{{ $item['price'] }}</td>
-                            <td @click="changeCount = true ; " class="px-3 py-2 text-start cursor-pointer"
-                                :class="changeCount ? 'hidden' : ''">
-                                {{ $item['count'] }} </td>
-                            <td x-show="changeCount">
 
+                            <td class="px-3 py-2 text-start">{{ $item['price'] }}</td>
+                            <td x-show="conditionOrigin" class="px-3 py-2 text-start cursor-pointer"
+                                @click="conditionChange = true; conditionOrigin = false">
+                                {{ $item['count'] }}
+                            </td>
+                            <td x-show="conditionChange">
                                 <input type="number" wire:model.defer="counts.{{ $key }}"
-                                    x-on:keydown.enter="changeCount = false; $wire.reCount({{ $key }})"
+                                    x-model="exceedProduct"
+                                    x-on:keydown.enter="if (exceedProduct > {{ $item['quantity'] }}) {
+                                               conditionExceed = true;
+                                               conditionOrigin = false;
+                                           } else {
+                                            conditionOrigin = true;
+                                            $wire.reCount({{ $key }});
+                                          }; conditionChange = false;"
                                     class="inline-block min-w-10 w-20 bg-gray-200">
 
+                            </td>
+                            <td x-show="conditionExceed" @click="conditionOrigin = true; conditionExceed = false"
+                                class="px-3 py-2 text-start cursor-pointer"> Maximum quantity {{ $item['quantity'] }}
+                                only
                             </td>
                             <td class="px-3 py-2 text-start">{{ $item['price'] * $item['count'] }} $</td>
                             <td class="cursor-pointer" wire:click="cancel({{ $key }})"><svg
