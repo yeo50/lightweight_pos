@@ -5,6 +5,7 @@
 
     @if ($transaction && $sales)
         <div class="p-4">
+            <h1 class="text-xl my-3 font-bold">Receipt</h1>
             <div class="px-6 py-4 border border-black">
                 <h1 class="text-center font-bold max-sm:text-base text-lg my-3">
                     {{ str_replace('Team', 'Store', Auth::user()->currentTeam->name) }}</h1>
